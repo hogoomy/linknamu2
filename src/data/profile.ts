@@ -1,0 +1,28 @@
+// 링크나무 페이지에 보여 줄 내용이에요.
+// 이름, 소개, 링크를 바꾸고 싶으면 이 파일만 고치면 돼요.
+
+export type LinkItem = {
+  id: string; // 링크마다 다른 이름표 (나중에 클릭 수를 셀 때 써요)
+  title: string; // 버튼에 보이는 글자
+  url: string; // 눌렀을 때 이동할 주소
+};
+
+export type Profile = {
+  name: string;
+  bio: string;
+  imageUrl?: string; // 프로필 사진 주소 (없으면 이름 첫 글자를 보여 줘요)
+  links: LinkItem[];
+};
+
+// ⚠️ 아래 값은 모두 보여 주기용 더미(가짜) 값이에요. 나중에 진짜 내용으로 바꿔 주세요.
+export const profile: Profile = {
+  name: "김호겸",
+  bio: "세계최강김호겸",
+  // 진짜 사진은 public 폴더에 넣고 주소를 바꿔 주세요. 예: "/profile.jpg"
+  imageUrl: "/profile-placeholder.svg",
+  links: [
+    { id: "github", title: "GitHub", url: "https://github.com" },
+    { id: "linkedin", title: "LinkedIn", url: "https://www.linkedin.com" },
+    { id: "blog", title: "Blog", url: "https://example.com" },
+  ],
+};

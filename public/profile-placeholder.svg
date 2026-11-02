@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- 보여 주기용 임시 프로필 그림이에요. 진짜 사진이 생기면 바꿔 주세요. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#bbf7d0"/>
+      <stop offset="1" stop-color="#4ade80"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg)"/>
+  <circle cx="100" cy="80" r="36" fill="#ffffff" opacity="0.9"/>
+  <path d="M30 200c0-42 31-70 70-70s70 28 70 70z" fill="#ffffff" opacity="0.9"/>
+</svg>
