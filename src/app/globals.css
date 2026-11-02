@@ -1,26 +1,25 @@
 @import "tailwindcss";
 
+/* 화면 전체에 쓰는 색 (따뜻한 크림 → 살구 톤) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff8ef;
+  --foreground: #3b302a;
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Pretendard 글꼴을 기본 글꼴로 써요. 못 불러오면 컴퓨터에 있는 글꼴로 대신해요. */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
+  /* 크림색에서 연한 살구색으로 부드럽게 번지는 배경 */
+  background: linear-gradient(165deg, #fffaf3 0%, #fdeee0 50%, #f8dcc8 100%) fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all; /* 한글 단어가 중간에서 끊기지 않게 해요 */
 }
