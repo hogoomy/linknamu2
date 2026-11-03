@@ -1,5 +1,5 @@
 import ProfileHeader from "@/components/ProfileHeader";
-import LinkCard from "@/components/LinkCard";
+import LinkList from "@/components/LinkList";
 import { profile } from "@/data/profile";
 
 // 링크나무 메인 페이지
@@ -14,14 +14,8 @@ export default function Home() {
 
       <main className="flex w-full max-w-sm flex-col items-center">
         <ProfileHeader name={profile.name} bio={profile.bio} imageUrl={profile.imageUrl} />
-
-        <ul className="mt-10 flex w-full flex-col gap-4">
-          {profile.links.map((link) => (
-            <li key={link.id}>
-              <LinkCard title={link.title} url={link.url} emoji={link.emoji} />
-            </li>
-          ))}
-        </ul>
+        {/* 링크 카드 목록 (클릭 수를 받아와서 카드 오른쪽에 보여 줘요) */}
+        <LinkList links={profile.links} />
       </main>
     </div>
   );
