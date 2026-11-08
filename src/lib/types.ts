@@ -54,6 +54,8 @@ export type Snapshot = {
   /** 처음 만난 날, 결혼한 날 (YYYY-MM-DD) */
   met_on: string | null;
   married_on: string | null;
+  /** 달력 사진 { "01".. "12": data URL } — 없는 달은 cover 사용 */
+  monthPhotos: Record<string, string>;
   events: PlannerEvent[];
   tasks: Task[];
 };
@@ -72,6 +74,8 @@ export interface Backend {
   updateProfile(patch: Partial<Pick<Profile, "name" | "color">>): Promise<void>;
   createCouple(): Promise<string>;
   setCover(dataUrl: string | null): Promise<void>;
+  /** month: "01"~"12" */
+  setMonthPhoto(month: string, dataUrl: string | null): Promise<void>;
   setAnniversaries(a: { met_on: string | null; married_on: string | null }): Promise<void>;
   joinCouple(code: string): Promise<void>;
   saveEvent(input: EventInput, id?: string): Promise<void>;

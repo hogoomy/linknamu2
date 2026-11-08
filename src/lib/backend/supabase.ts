@@ -57,7 +57,7 @@ export class SupabaseBackend implements Backend {
     const user = sess.session?.user;
     if (!user) {
       this.watch(null);
-      return { me: null, partner: null, inviteCode: null, cover: null, met_on: null, married_on: null, events: [], tasks: [] };
+      return { me: null, partner: null, inviteCode: null, cover: null, met_on: null, married_on: null, monthPhotos: {}, events: [], tasks: [] };
     }
     const { data: profiles, error } = await this.sb.from("profiles").select("id,name,color,couple_id");
     if (error) throw error;
@@ -69,10 +69,10 @@ export class SupabaseBackend implements Backend {
     };
     const partner = (profiles as Profile[]).find((p) => p.id !== user.id) ?? null;
     this.watch(me.couple_id);
-    if (!me.couple_id) return { me, partner: null, inviteCode: null, cover: null, met_on: null, married_on: null, events: [], tasks: [] };
+    if (!me.couple_id) return { me, partner: null, inviteCode: null, cover: null, met_on: null, married_on: null, monthPhotos: {}, events: [], tasks: [] };
 
     const [couple, events, tasks] = await Promise.all([
-      this.sb.from("couples").select("invite_code,cover_photo,met_on,married_on").eq("id", me.couple_id).maybeSingle(),
+      this.sb.from("couples").select("invite_code,cover_photo,met_on,married_on,month_photos").eq("id", me.couple_id).maybeSingle(),
       this.sb.from("events").select("*").order("date"),
       this.sb.from("tasks").select("*").order("created_at"),
     ]);
@@ -85,6 +85,7 @@ export class SupabaseBackend implements Backend {
       cover: couple.data?.cover_photo ?? null,
       met_on: couple.data?.met_on ?? null,
       married_on: couple.data?.married_on ?? null,
+      monthPhotos: (couple.data?.month_photos as Record<string, string> | null) ?? {},
       events: (events.data as PlannerEvent[]).map((e) => ({
         ...e,
         start_time: trimTime(e.start_time),
@@ -127,6 +128,12 @@ export class SupabaseBackend implements Backend {
 
   async setCover(dataUrl: string | null) {
     const { error } = await this.sb.from("couples").update({ cover_photo: dataUrl }).eq("id", await this.coupleId());
+    if (error) throw error;
+    this.emit();
+  }
+
+  async setMonthPhoto(month: string, dataUrl: string | null) {
+    const { error } = await this.sb.rpc("set_month_photo", { p_month: month, p_photo: dataUrl });
     if (error) throw error;
     this.emit();
   }

@@ -11,7 +11,7 @@ const DB_KEY = "couple-planner-demo-v2";
 const ME_KEY = "couple-planner-demo-me";
 const COUPLE_ID = "demo-couple";
 
-type DemoDB = { profiles: Profile[]; events: PlannerEvent[]; tasks: Task[]; cover?: string | null; met_on?: string | null; married_on?: string | null };
+type DemoDB = { profiles: Profile[]; events: PlannerEvent[]; tasks: Task[]; cover?: string | null; met_on?: string | null; married_on?: string | null; monthPhotos?: Record<string, string> };
 
 const uid = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -73,10 +73,12 @@ export class DemoBackend implements Backend {
     return structuredClone(db);
   }
 
-  private write(db: DemoDB) {
+  /** 저장 성공 여부 반환 (용량 초과면 false, 메모리에는 남음) */
+  private write(db: DemoDB): boolean {
     this.mem = db;
-    safeSet("localStorage", DB_KEY, JSON.stringify(db));
+    const ok = safeSet("localStorage", DB_KEY, JSON.stringify(db));
     this.emit();
+    return ok;
   }
 
   private emit() {
@@ -110,7 +112,7 @@ export class DemoBackend implements Backend {
     const db = this.read();
     const me = db.profiles.find((p) => p.id === this.meId()) ?? null;
     const partner = db.profiles.find((p) => p.id !== this.meId()) ?? null;
-    return { me, partner, inviteCode: "DEMO42", cover: db.cover ?? null, met_on: db.met_on ?? null, married_on: db.married_on ?? null, events: db.events, tasks: db.tasks };
+    return { me, partner, inviteCode: "DEMO42", cover: db.cover ?? null, met_on: db.met_on ?? null, married_on: db.married_on ?? null, monthPhotos: db.monthPhotos ?? {}, events: db.events, tasks: db.tasks };
   }
 
   async signIn() {}
@@ -127,6 +129,15 @@ export class DemoBackend implements Backend {
     const db = this.read();
     db.cover = dataUrl;
     this.write(db);
+  }
+
+  async setMonthPhoto(month: string, dataUrl: string | null) {
+    const db = this.read();
+    const photos = { ...(db.monthPhotos ?? {}) };
+    if (dataUrl) photos[month] = dataUrl;
+    else delete photos[month];
+    db.monthPhotos = photos;
+    if (!this.write(db)) throw new Error("체험판 저장 공간이 부족해서 새로고침하면 사라져요. 사진 몇 장을 지워 주세요");
   }
 
   async setAnniversaries(a: { met_on: string | null; married_on: string | null }) {
@@ -211,10 +222,12 @@ function safeGet(store: StoreName, key: string): string | null {
     return null;
   }
 }
-function safeSet(store: StoreName, key: string, value: string) {
+function safeSet(store: StoreName, key: string, value: string): boolean {
   try {
     window[store].setItem(key, value);
+    return true;
   } catch {
-    /* 저장 불가 환경(사생활 보호 모드 등)은 무시 */
+    /* 저장 불가 환경(사생활 보호 모드·용량 초과) */
+    return false;
   }
 }

@@ -2,10 +2,9 @@
 
 import { addDays } from "date-fns";
 import { useEffect, useState } from "react";
-import { dayCount, MET_EMOJI, nextAnniv, WED_EMOJI } from "@/lib/anniv";
 import { eventsOn, todayKey, toKey } from "@/lib/dates";
 import type { PlannerEvent, Task } from "@/lib/types";
-import { Calendar, type CalView } from "./Calendar";
+import { Calendar } from "./Calendar";
 import { DaySheet } from "./DayPanel";
 import { Editor, type EditorTarget } from "./Editor";
 import { GoogleProvider, useGoogle } from "./GoogleProvider";
@@ -72,9 +71,9 @@ function Gate() {
   return <Main />;
 }
 
-/** 홈 맨 위 커버 사진 카드 */
-function CoverHero({ onAddPhoto }: { onAddPhoto: () => void }) {
-  const { me, partner, cover, tasks, events, met_on, married_on } = usePlanner();
+/** 달력 아래 요약: 오늘 내 할 일 · 새 부탁 · 7일 일정 */
+function Summary() {
+  const { me, tasks, events } = usePlanner();
   const google = useGoogle();
   const today = todayKey();
   const todayTasks = tasks.filter((t) => t.status !== "done" && t.due_date === today && (t.assignee_id === me?.id || t.assignee_id === null)).length;
@@ -83,78 +82,11 @@ function CoverHero({ onAddPhoto }: { onAddPhoto: () => void }) {
     (n, k) => n + eventsOn(events, k).length + eventsOn(google.events, k).length,
     0,
   );
-
-  const ddays = [
-    met_on && { emoji: MET_EMOJI, label: "처음 만난 날", n: dayCount(met_on, today) },
-    married_on && { emoji: WED_EMOJI, label: "결혼", n: dayCount(married_on, today) },
-  ].filter((d): d is { emoji: string; label: string; n: number } => !!d && d.n > 0);
-  const next = nextAnniv(today, { met_on, married_on });
-
-  const ddayChips = (glass: boolean) =>
-    ddays.length > 0 && (
-      <div className={`flex gap-1.5 ${glass ? "flex-col items-end" : "flex-wrap"}`}>
-        {ddays.map((d) => (
-          <span
-            key={d.label}
-            title={`${d.label}부터 ${d.n.toLocaleString()}일째`}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold tabular-nums ${glass ? "bg-black/40 text-white backdrop-blur-md" : "bg-surface-2"}`}
-          >
-            <span aria-label={d.label}>{d.emoji}</span> D+{d.n.toLocaleString()}
-          </span>
-        ))}
-      </div>
-    );
-  const nextLine = next && (
-    <>
-      {next.emoji} {next.label}{next.dday === 0 ? " · 오늘이에요!" : `까지 D-${next.dday}`}
-    </>
-  );
-
-  const summary = (
-    <div className="flex gap-2">
+  return (
+    <section className="flex gap-2 rounded-[24px] bg-surface p-3" aria-label="요약">
       <Stat label="오늘 내 할 일" value={todayTasks} />
       <Stat label="새 부탁" value={received} highlight={received > 0} />
       <Stat label="7일 일정" value={weekEvents} />
-    </div>
-  );
-
-  if (!cover) {
-    return (
-      <section className="rounded-[24px] bg-surface p-5">
-        <p className="text-[22px] leading-tight font-bold tracking-tight">
-          {me?.name}
-          {partner && <span className="text-ink-3"> & </span>}
-          {partner?.name}
-        </p>
-        {nextLine && <p className="mt-1 text-[14px] font-medium text-ink-2">{nextLine}</p>}
-        <div className="mt-2">{ddayChips(false)}</div>
-        <button onClick={onAddPhoto} className="mt-2 flex items-center gap-1 text-[15px] font-medium text-accent">
-          <Icon name="camera" className="size-4" /> 우리 사진 올리기
-        </button>
-        <div className="mt-4">{summary}</div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="relative overflow-hidden rounded-[24px] bg-surface">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={cover} alt={`${me?.name}와 ${partner?.name ?? ""}`} className="h-[230px] w-full object-cover object-[50%_18%] sm:h-[280px]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" aria-hidden />
-      <div className="absolute top-3 right-3 flex flex-col items-end">{ddayChips(true)}</div>
-      <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-        <p className="text-[24px] leading-tight font-bold tracking-tight drop-shadow">
-          {me?.name}
-          {partner && <span className="opacity-70"> ♥ </span>}
-          {partner?.name}
-        </p>
-        {nextLine && <p className="mt-1 text-[14px] font-medium text-white/85 drop-shadow">{nextLine}</p>}
-        <div className="mt-3 flex gap-2">
-          <Stat glass label="오늘 내 할 일" value={todayTasks} />
-          <Stat glass label="새 부탁" value={received} />
-          <Stat glass label="7일 일정" value={weekEvents} />
-        </div>
-      </div>
     </section>
   );
 }
@@ -172,7 +104,6 @@ function Main() {
   const { me, backend } = usePlanner();
   const [tab, setTab] = useState<Tab>("calendar");
   const [day, setDay] = useState(todayKey());
-  const [view, setView] = useState<CalView>("month");
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [dayOpen, setDayOpen] = useState(false);
 
@@ -211,8 +142,7 @@ function Main() {
 
       <main className="px-4 pb-32 lg:px-0 lg:pb-12">
         {tab === "calendar" && (
-          <div className="space-y-3 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
-            <CoverHero onAddPhoto={() => setTab("settings")} />
+          <div className="mx-auto max-w-2xl space-y-3">
             <Calendar
               selected={day}
               onSelect={setDay}
@@ -220,9 +150,8 @@ function Main() {
                 setDay(k);
                 setDayOpen(true);
               }}
-              view={view}
-              onViewChange={setView}
             />
+            <Summary />
           </div>
         )}
         {tab === "tasks" && (

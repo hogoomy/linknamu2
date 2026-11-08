@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DemoBackend } from "@/lib/backend";
+import { monthKey, shrinkPhoto } from "@/lib/photo";
 import { useGoogle } from "./GoogleProvider";
 import { usePlanner } from "./PlannerProvider";
 import { Card, Field, Icon, inputCls, primaryBtn, secondaryBtn } from "./ui";
@@ -9,32 +10,10 @@ import { Card, Field, Icon, inputCls, primaryBtn, secondaryBtn } from "./ui";
 // 사진에서 따온 색 (체크 셔츠 네이비·머스터드, 나무 바닥) + 기본 색. 초록은 "함께" 전용
 const COLORS = ["#34508f", "#b5653a", "#8a7a2e", "#3182f6", "#f04452", "#8b5cf6", "#e07a9a", "#4e5968"];
 
-/** 사진을 가로 900px JPEG 로 줄여 data URL 로 */
-async function shrinkPhoto(file: File): Promise<string> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((res, rej) => {
-      const i = new Image();
-      i.onload = () => res(i);
-      i.onerror = () => rej(new Error("사진을 읽지 못했어요"));
-      i.src = url;
-    });
-    const scale = Math.min(1, 900 / img.width);
-    const c = document.createElement("canvas");
-    c.width = Math.round(img.width * scale);
-    c.height = Math.round(img.height * scale);
-    c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL("image/jpeg", 0.8);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
 export function Settings() {
-  const { me, partner, inviteCode, cover, met_on, married_on, backend, showToast } = usePlanner();
+  const { me, partner, inviteCode, met_on, married_on, backend, showToast } = usePlanner();
   const [name, setName] = useState(me?.name ?? "");
   const [confirmReset, setConfirmReset] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const saveName = async () => {
     if (!name.trim() || name.trim() === me?.name) return;
@@ -42,42 +21,9 @@ export function Settings() {
     showToast("이름을 바꿨어요");
   };
 
-  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f) return;
-    try {
-      await backend.setCover(await shrinkPhoto(f));
-      showToast("커버 사진을 바꿨어요");
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : "사진을 저장하지 못했어요");
-    }
-  };
-
   return (
     <section aria-label="설정" className="space-y-3">
-      <Card title="우리 사진">
-        <div className="relative overflow-hidden rounded-[18px] bg-surface-2">
-          {cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover} alt="커버 사진" className="aspect-[4/3] w-full object-cover object-[50%_20%]" />
-          ) : (
-            <div className="grid aspect-[4/3] place-items-center text-[15px] text-ink-3">아직 사진이 없어요</div>
-          )}
-        </div>
-        <div className="mt-3 flex gap-2">
-          <button onClick={() => fileRef.current?.click()} className={`flex flex-1 items-center justify-center gap-1.5 ${secondaryBtn} py-3`}>
-            <Icon name="camera" className="size-4" /> {cover ? "사진 바꾸기" : "사진 올리기"}
-          </button>
-          {cover && (
-            <button onClick={() => backend.setCover(null)} className={`${secondaryBtn} py-3`}>
-              지우기
-            </button>
-          )}
-        </div>
-        <input ref={fileRef} id="cover-file" type="file" accept="image/*" className="hidden" onChange={onPhoto} />
-        <p className="mt-2 text-[13px] text-ink-3">두 사람 홈 화면 맨 위에 함께 보여요.</p>
-      </Card>
+      <PhotosCard />
 
       <Card title="우리 기념일">
         <div className="grid grid-cols-2 gap-3">
@@ -187,6 +133,112 @@ export function Settings() {
         </button>
       )}
     </section>
+  );
+}
+
+/** 달력 사진: 기본 사진 + 1~12월 사진 (여러 장 고르면 이번 달부터 차례로) */
+function PhotosCard() {
+  const { cover, monthPhotos, backend, showToast } = usePlanner();
+  const baseRef = useRef<HTMLInputElement>(null);
+  const bulkRef = useRef<HTMLInputElement>(null);
+  const oneRef = useRef<HTMLInputElement>(null);
+  const [target, setTarget] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const thisMonth = new Date().getMonth() + 1;
+
+  const run = async (fn: () => Promise<void>, ok: string) => {
+    setBusy(true);
+    try {
+      await fn();
+      showToast(ok);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "사진을 저장하지 못했어요");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onBase = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (f) void run(async () => backend.setCover(await shrinkPhoto(f)), "기본 사진을 바꿨어요");
+  };
+  const onOne = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (f && target) void run(async () => backend.setMonthPhoto(target, await shrinkPhoto(f)), `${Number(target)}월 사진을 바꿨어요`);
+  };
+  const onBulk = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).slice(0, 12);
+    e.target.value = "";
+    if (!files.length) return;
+    void run(async () => {
+      for (let i = 0; i < files.length; i++) {
+        const m = monthKey(((thisMonth - 1 + i) % 12) + 1);
+        await backend.setMonthPhoto(m, await shrinkPhoto(files[i]));
+      }
+    }, `${files.length}장을 ${thisMonth}월부터 차례로 넣었어요`);
+  };
+
+  return (
+    <Card title="달력 사진">
+      <p className="text-[15px] leading-relaxed text-ink-2">달마다 다른 사진이 달력 위에 나와요. 사진이 없는 달은 기본 사진이 보여요.</p>
+      <button disabled={busy} onClick={() => bulkRef.current?.click()} className={`mt-3 flex items-center justify-center gap-2 ${primaryBtn}`}>
+        <Icon name="camera" className="size-5" /> {busy ? "사진 넣는 중…" : "사진 여러 장 한 번에 고르기"}
+      </button>
+      <p className="mt-1.5 text-[13px] text-ink-3">고른 순서대로 {thisMonth}월부터 한 달에 한 장씩 들어가요. 아이폰은 사진 고르기 창의 ‘사람’ 앨범에서 두 분 사진을 찾을 수 있어요.</p>
+
+      <div className="mt-4 grid grid-cols-4 gap-2">
+        {Array.from({ length: 12 }, (_, i) => {
+          const m = monthKey(i + 1);
+          const src = monthPhotos[m];
+          return (
+            <button
+              key={m}
+              disabled={busy}
+              onClick={() => {
+                setTarget(m);
+                oneRef.current?.click();
+              }}
+              aria-label={`${i + 1}월 사진 ${src ? "바꾸기" : "올리기"}`}
+              className={`relative aspect-square overflow-hidden rounded-[12px] bg-surface-2 ${i + 1 === thisMonth ? "ring-2 ring-accent" : ""}`}
+            >
+              {src ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt="" className="size-full object-cover object-[50%_20%]" />
+              ) : cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cover} alt="" className="size-full object-cover object-[50%_20%] opacity-35 grayscale" />
+              ) : null}
+              <span className={`absolute bottom-1 left-1.5 text-[13px] font-bold ${src ? "text-white drop-shadow" : "text-ink-2"}`}>{i + 1}월</span>
+            </button>
+          );
+        })}
+      </div>
+      {Object.keys(monthPhotos).length > 0 && (
+        <p className="mt-2 text-[13px] text-ink-3">칸을 누르면 그 달 사진만 바꿀 수 있어요.</p>
+      )}
+
+      <div className="mt-4 flex items-center gap-3 rounded-[16px] bg-surface-2 p-3">
+        <div className="size-14 shrink-0 overflow-hidden rounded-[10px] bg-surface">
+          {cover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={cover} alt="기본 사진" className="size-full object-cover object-[50%_20%]" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold">기본 사진</p>
+          <p className="text-[13px] text-ink-3">사진이 없는 달에 보여요</p>
+        </div>
+        <button disabled={busy} onClick={() => baseRef.current?.click()} className="rounded-[10px] bg-surface px-3 py-1.5 text-[14px] font-semibold">
+          {cover ? "바꾸기" : "올리기"}
+        </button>
+      </div>
+
+      <input ref={bulkRef} id="photos-bulk" type="file" accept="image/*" multiple className="hidden" onChange={onBulk} />
+      <input ref={oneRef} id="photos-one" type="file" accept="image/*" className="hidden" onChange={onOne} />
+      <input ref={baseRef} id="photos-base" type="file" accept="image/*" className="hidden" onChange={onBase} />
+    </Card>
   );
 }
 
