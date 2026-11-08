@@ -10,6 +10,7 @@ const COLORS = ["#3b82f6", "#f43f5e", "#10b981", "#8b5cf6", "#f59e0b", "#0ea5e9"
 export function Settings() {
   const { me, partner, inviteCode, backend, showToast } = usePlanner();
   const [name, setName] = useState(me?.name ?? "");
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const saveName = async () => {
     if (!name.trim() || name.trim() === me?.name) return;
@@ -76,10 +77,16 @@ export function Settings() {
               {partner?.name}(으)로 보기
             </button>
             <button
-              onClick={() => confirm("샘플 데이터로 되돌릴까요?") && backend.reset()}
-              className="min-h-11 rounded-xl border border-line px-4 text-sm font-semibold"
+              onClick={() => {
+                if (!confirmReset) return setConfirmReset(true);
+                backend.reset();
+                setConfirmReset(false);
+                showToast("샘플 데이터로 되돌렸어요");
+              }}
+              onBlur={() => setConfirmReset(false)}
+              className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${confirmReset ? "border-late bg-late text-white" : "border-line"}`}
             >
-              초기화
+              {confirmReset ? "정말 초기화" : "초기화"}
             </button>
           </div>
         </Card>

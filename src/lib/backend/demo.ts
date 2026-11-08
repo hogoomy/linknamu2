@@ -45,6 +45,9 @@ function seed(): DemoDB {
 export class DemoBackend implements Backend {
   readonly mode = "demo" as const;
   private listeners = new Set<() => void>();
+  /** 브라우저 저장소를 못 쓰는 환경(사생활 보호 모드 등)에서는 메모리에만 보관 */
+  private mem: DemoDB | null = null;
+  private memMe: string | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -55,7 +58,7 @@ export class DemoBackend implements Backend {
   }
 
   private read(): DemoDB {
-    const raw = safeGet(localStorage, DB_KEY);
+    const raw = safeGet("localStorage", DB_KEY);
     if (raw) {
       try {
         return JSON.parse(raw) as DemoDB;
@@ -63,13 +66,16 @@ export class DemoBackend implements Backend {
         /* fallthrough → reseed */
       }
     }
+    if (this.mem) return structuredClone(this.mem);
     const db = seed();
-    safeSet(localStorage, DB_KEY, JSON.stringify(db));
-    return db;
+    this.mem = db;
+    safeSet("localStorage", DB_KEY, JSON.stringify(db));
+    return structuredClone(db);
   }
 
   private write(db: DemoDB) {
-    safeSet(localStorage, DB_KEY, JSON.stringify(db));
+    this.mem = db;
+    safeSet("localStorage", DB_KEY, JSON.stringify(db));
     this.emit();
   }
 
@@ -78,12 +84,13 @@ export class DemoBackend implements Backend {
   }
 
   private meId(): string {
-    return safeGet(sessionStorage, ME_KEY) ?? "demo-husband";
+    return safeGet("sessionStorage", ME_KEY) ?? this.memMe ?? "demo-husband";
   }
 
   /** 데모 전용: 이 탭에서 누구로 볼지 전환 */
   switchUser() {
-    safeSet(sessionStorage, ME_KEY, this.meId() === "demo-husband" ? "demo-wife" : "demo-husband");
+    this.memMe = this.meId() === "demo-husband" ? "demo-wife" : "demo-husband";
+    safeSet("sessionStorage", ME_KEY, this.memMe);
     this.emit();
   }
 
@@ -182,16 +189,18 @@ export class DemoBackend implements Backend {
   async notify() {}
 }
 
-function safeGet(store: Storage, key: string): string | null {
+type StoreName = "localStorage" | "sessionStorage";
+// window.localStorage 접근 자체가 예외를 던지는 환경이 있어서 접근까지 try 안에서
+function safeGet(store: StoreName, key: string): string | null {
   try {
-    return store.getItem(key);
+    return window[store].getItem(key);
   } catch {
     return null;
   }
 }
-function safeSet(store: Storage, key: string, value: string) {
+function safeSet(store: StoreName, key: string, value: string) {
   try {
-    store.setItem(key, value);
+    window[store].setItem(key, value);
   } catch {
     /* 저장 불가 환경(사생활 보호 모드 등)은 무시 */
   }

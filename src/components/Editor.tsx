@@ -40,6 +40,7 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
   );
   const [noDate, setNoDate] = useState(tk ? !tk.due_date : target.kind === "task" && !target.date);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const people = [
     ...(partner ? [{ id: partner.id, label: partner.name || "상대" }] : []),
@@ -74,7 +75,8 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
   };
 
   const remove = async () => {
-    if (!confirm("정말 지울까요?")) return;
+    // 확인 창 대신 두 번 누르기 (홈 화면 앱·임베드에서도 동작)
+    if (!confirmDelete) return setConfirmDelete(true);
     if (ev) await deleteEvent(ev.id);
     if (tk) await deleteTask(tk.id);
     onClose();
@@ -195,8 +197,15 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
 
       <div className="flex gap-2 pt-2">
         {!isNew && (
-          <button type="button" onClick={remove} className="grid size-12 shrink-0 place-items-center rounded-2xl border border-line text-late" aria-label="지우기">
+          <button
+            type="button"
+            onClick={remove}
+            onBlur={() => setConfirmDelete(false)}
+            className={`flex h-12 shrink-0 items-center justify-center gap-1 rounded-2xl border px-3.5 text-sm font-bold ${confirmDelete ? "border-late bg-late text-white" : "border-line text-late"}`}
+            aria-label={confirmDelete ? "한 번 더 눌러 지우기" : "지우기"}
+          >
             <Icon name="trash" />
+            {confirmDelete && "지우기"}
           </button>
         )}
         <button type="submit" disabled={busy} className="min-h-12 flex-1 rounded-2xl bg-accent text-base font-bold text-accent-ink disabled:opacity-50">
