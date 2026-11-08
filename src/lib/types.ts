@@ -51,6 +51,9 @@ export type Snapshot = {
   inviteCode: string | null;
   /** 커플 커버 사진 (data URL) */
   cover: string | null;
+  /** 처음 만난 날, 결혼한 날 (YYYY-MM-DD) */
+  met_on: string | null;
+  married_on: string | null;
   events: PlannerEvent[];
   tasks: Task[];
 };
@@ -69,6 +72,7 @@ export interface Backend {
   updateProfile(patch: Partial<Pick<Profile, "name" | "color">>): Promise<void>;
   createCouple(): Promise<string>;
   setCover(dataUrl: string | null): Promise<void>;
+  setAnniversaries(a: { met_on: string | null; married_on: string | null }): Promise<void>;
   joinCouple(code: string): Promise<void>;
   saveEvent(input: EventInput, id?: string): Promise<void>;
   deleteEvent(id: string): Promise<void>;

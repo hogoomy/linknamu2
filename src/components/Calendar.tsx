@@ -1,6 +1,7 @@
 "use client";
 
 import { addMonths, addWeeks, format, isSameMonth, parseISO } from "date-fns";
+import { annivOn } from "@/lib/anniv";
 import { eventsOn, monthGrid, tasksOn, todayKey, toKey, weekGrid, WEEKDAYS } from "@/lib/dates";
 import { GOOGLE_COLOR, useGoogle } from "./GoogleProvider";
 import { usePlanner } from "./PlannerProvider";
@@ -21,7 +22,7 @@ export function Calendar({
   view: CalView;
   onViewChange: (v: CalView) => void;
 }) {
-  const { events, tasks, colorOf } = usePlanner();
+  const { events, tasks, colorOf, met_on, married_on } = usePlanner();
   const google = useGoogle();
   const sel = parseISO(selected);
   const days = view === "month" ? monthGrid(sel) : weekGrid(sel);
@@ -71,6 +72,7 @@ export function Calendar({
             ...eventsOn(google.events, key).map((e) => ({ id: `g-${e.id}`, title: e.title, color: GOOGLE_COLOR })),
           ];
           const open = tasksOn(tasks, key).filter((t) => t.status !== "done").length;
+          const anniv = annivOn(key, { met_on, married_on });
           const isSel = key === selected;
           const isToday = key === today;
           const dim = view === "month" && !isSameMonth(d, sel);
@@ -86,11 +88,17 @@ export function Calendar({
               } ${dim ? "opacity-35" : ""}`}
             >
               <span
-                className={`grid size-8 place-items-center rounded-full text-[15px] tabular-nums ${
+                title={anniv.map((a) => a.label).join(", ") || undefined}
+                className={`relative grid size-8 place-items-center rounded-full text-[15px] tabular-nums ${
                   isSel ? "bg-accent font-bold text-accent-ink" : isToday ? "font-bold text-accent" : d.getDay() === 0 ? "text-late" : "font-medium"
                 }`}
               >
                 {d.getDate()}
+                {anniv.length > 0 && (
+                  <span className="absolute -top-1 -right-2 text-[11px] leading-none" aria-label={anniv.map((a) => a.label).join(", ")}>
+                    {anniv[0].emoji}
+                  </span>
+                )}
               </span>
 
               {/* 휴대폰 월간: 점으로 / 넓은 화면·주간: 제목까지 */}

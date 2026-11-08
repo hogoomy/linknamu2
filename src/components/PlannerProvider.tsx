@@ -25,7 +25,7 @@ type Ctx = Snapshot & {
 
 const PlannerContext = createContext<Ctx | null>(null);
 
-const EMPTY: Snapshot = { me: null, partner: null, inviteCode: null, cover: null, events: [], tasks: [] };
+const EMPTY: Snapshot = { me: null, partner: null, inviteCode: null, cover: null, met_on: null, married_on: null, events: [], tasks: [] };
 export const TOGETHER_COLOR = "#12a37a";
 
 export function PlannerProvider({ children }: { children: React.ReactNode }) {

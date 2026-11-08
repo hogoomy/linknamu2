@@ -31,7 +31,7 @@ async function shrinkPhoto(file: File): Promise<string> {
 }
 
 export function Settings() {
-  const { me, partner, inviteCode, cover, backend, showToast } = usePlanner();
+  const { me, partner, inviteCode, cover, met_on, married_on, backend, showToast } = usePlanner();
   const [name, setName] = useState(me?.name ?? "");
   const [confirmReset, setConfirmReset] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -77,6 +77,30 @@ export function Settings() {
         </div>
         <input ref={fileRef} id="cover-file" type="file" accept="image/*" className="hidden" onChange={onPhoto} />
         <p className="mt-2 text-[13px] text-ink-3">두 사람 홈 화면 맨 위에 함께 보여요.</p>
+      </Card>
+
+      <Card title="우리 기념일">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="❤️ 처음 만난 날">
+            <input
+              id="met-on"
+              type="date"
+              className={inputCls}
+              value={met_on ?? ""}
+              onChange={(e) => backend.setAnniversaries({ met_on: e.target.value || null, married_on })}
+            />
+          </Field>
+          <Field label="💍 결혼한 날">
+            <input
+              id="married-on"
+              type="date"
+              className={inputCls}
+              value={married_on ?? ""}
+              onChange={(e) => backend.setAnniversaries({ met_on, married_on: e.target.value || null })}
+            />
+          </Field>
+        </div>
+        <p className="mt-2 text-[13px] text-ink-3">처음 만난 날을 1일로 세요. 100일마다, 그리고 매년 기념일에 달력에 표시돼요.</p>
       </Card>
 
       <Card title="내 정보">

@@ -1,5 +1,6 @@
 "use client";
 
+import { annivOn } from "@/lib/anniv";
 import { eventsOn, prettyDate, tasksOn, timeRange, todayKey } from "@/lib/dates";
 import type { PlannerEvent, Task } from "@/lib/types";
 import { GOOGLE_COLOR, useGoogle } from "./GoogleProvider";
@@ -18,13 +19,14 @@ export function DayPanel({
   onOpenEvent: (e: PlannerEvent) => void;
   onOpenTask: (t: Task) => void;
 }) {
-  const { events, tasks, colorOf, nameOf, saveTask } = usePlanner();
+  const { events, tasks, colorOf, nameOf, saveTask, met_on, married_on } = usePlanner();
   const google = useGoogle();
   const dayEvents = eventsOn(events, day);
   const gEvents = eventsOn(google.events, day);
   const dayTasks = tasksOn(tasks, day).sort((a, b) => Number(a.status === "done") - Number(b.status === "done"));
   const unscheduled = tasks.filter((t) => !t.due_date && t.status !== "done");
-  const empty = dayEvents.length + gEvents.length === 0;
+  const anniv = annivOn(day, { met_on, married_on });
+  const empty = dayEvents.length + gEvents.length + anniv.length === 0;
 
   const schedule = (t: Task) => saveTask({ title: t.title, assignee_id: t.assignee_id, due_date: day, memo: t.memo }, t.id);
 
@@ -53,6 +55,14 @@ export function DayPanel({
           <p className="py-3 text-[15px] text-ink-3">비어 있는 날이에요.</p>
         ) : (
           <ul>
+            {anniv.map((a) => (
+              <li key={a.label} className="flex items-center gap-3.5 py-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-accent-soft text-[20px]" aria-hidden>
+                  {a.emoji}
+                </span>
+                <span className="text-[16px] font-bold">{a.label}</span>
+              </li>
+            ))}
             {dayEvents.map((e) => (
               <li key={e.id}>
                 <button onClick={() => onOpenEvent(e)} className="flex w-full items-center gap-3.5 py-3 text-left">
