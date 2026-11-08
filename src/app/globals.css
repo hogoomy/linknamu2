@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #faf6f0;
+  --surface: #ffffff;
+  --surface-2: #f3ede4;
+  --line: #e7dfd3;
+  --ink: #2a2420;
+  --ink-2: #6f655c;
+  --ink-3: #a1968b;
+  --accent: #e8603c;
+  --accent-ink: #ffffff;
+  --accent-soft: #fde6dc;
+  --late: #dc2626;
+  --ok: #15803d;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #171412;
+    --surface: #221e1b;
+    --surface-2: #2c2723;
+    --line: #3a332e;
+    --ink: #f3ece4;
+    --ink-2: #bdb2a6;
+    --ink-3: #85796e;
+    --accent: #f27a56;
+    --accent-ink: #1b1411;
+    --accent-soft: #43271d;
+    --late: #f87171;
+    --ok: #4ade80;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-late: var(--late);
+  --color-ok: var(--ok);
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.animate-sheet {
+  animation: sheet-in 180ms ease-out;
 }
