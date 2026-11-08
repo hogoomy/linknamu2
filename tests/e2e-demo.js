@@ -14,7 +14,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // 오늘 날짜 버튼 (팝업 열기용)
   const todayBtn = (p) => p.getByRole('button', { pressed: true }).first();
   await todayBtn(husband).waitFor();
-  assert(await husband.getByText('주말 장보기 목록 정하기').count() === 0, 'day details hidden until a date is tapped');
+  assert(await husband.getByRole('dialog').count() === 0, 'day popup closed until a date is tapped');
+  assert(await husband.getByText('주말 장보').first().isVisible(), 'calendar cell shows short title');
   await husband.screenshot({ path: `${out}/1-calendar-mobile.png` });
   assert(await husband.getByText('체험판').first().isVisible(), 'demo badge shown');
 
@@ -64,7 +65,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.getByRole('button', { name: '이 날 하기' }).first().click();
   await husband.getByText('할 일을 고쳤어요').waitFor();
   await husband.getByRole('button', { name: '이 날 하기' }).waitFor({ state: 'detached', timeout: 3000 });
-  assert(await husband.getByText('거실 커튼 새로 고르기').isVisible(), 'unscheduled task scheduled to day');
+  assert(await husband.getByRole('dialog').getByText('거실 커튼 새로 고르기').isVisible(), 'unscheduled task scheduled to day');
 
   // add event
   await husband.getByRole('button', { name: '+ 일정' }).click();
