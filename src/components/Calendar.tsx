@@ -126,12 +126,12 @@ export function Calendar({
       </div>
 
       {/* 손글씨 월 + 날짜판 */}
-      <div className="flex gap-2 px-3 pt-4 pb-3 sm:gap-4 sm:px-5">
-        <div className="flex w-[64px] shrink-0 flex-col font-hand sm:w-[88px]">
-          <span className="text-[56px] leading-[0.9] font-bold tabular-nums sm:text-[72px]">{sel.getMonth() + 1}</span>
+      <div className="flex gap-1.5 px-2.5 pt-4 pb-3 sm:gap-4 sm:px-5">
+        <div className="flex w-[50px] shrink-0 flex-col font-hand sm:w-[88px]">
+          <span className="text-[46px] leading-[0.9] font-bold tabular-nums sm:text-[72px]">{sel.getMonth() + 1}</span>
           <span className="mt-2 text-[20px] leading-none">{EN_MONTH[sel.getMonth()]}</span>
           <span className="mt-1 text-[17px] leading-none text-ink-3">{sel.getFullYear()}</span>
-          <div className="mt-3 flex gap-0.5 font-sans">
+          <div className="mt-3 flex flex-wrap gap-0.5 font-sans">
             <button onClick={() => move(-1)} className="grid size-8 place-items-center rounded-full text-ink-3 hover:bg-surface-2" aria-label="이전 달">
               <Icon name="left" className="size-4" />
             </button>
@@ -157,12 +157,16 @@ export function Calendar({
           <div className="grid grid-cols-7">
             {days.map((d) => {
               const key = toKey(d);
-              if (!isSameMonth(d, sel)) return <span key={key} aria-hidden className="min-h-[46px]" />;
-              const dots = [
-                ...eventsOn(events, key).map((e) => ({ id: e.id, color: colorOf(e.owner_id) })),
-                ...eventsOn(google.events, key).map((e) => ({ id: `g-${e.id}`, color: GOOGLE_COLOR })),
+              if (!isSameMonth(d, sel)) return <span key={key} aria-hidden className="min-h-[70px]" />;
+              // 칸 안에 짧게 보여줄 제목들: 일정(사람 색) → 구글 일정(회색) → 남은 할 일(파랑)
+              const openTasks = tasksOn(tasks, key).filter((t) => t.status !== "done");
+              const items = [
+                ...eventsOn(events, key).map((e) => ({ id: e.id, title: e.title, color: colorOf(e.owner_id), task: false })),
+                ...eventsOn(google.events, key).map((e) => ({ id: `g-${e.id}`, title: e.title, color: GOOGLE_COLOR, task: false })),
+                ...openTasks.map((t) => ({ id: `t-${t.id}`, title: t.title, color: "var(--accent)", task: true })),
               ];
-              const open = tasksOn(tasks, key).filter((t) => t.status !== "done").length;
+              const open = openTasks.length;
+              const dots = items.filter((i) => !i.task);
               const anniv = annivOn(key, { met_on, married_on });
               const isSel = key === selected;
               const isToday = key === today;
@@ -172,21 +176,33 @@ export function Calendar({
                   onClick={() => onPick(key)}
                   aria-label={`${format(d, "M월 d일")} 일정 ${dots.length}개, 할 일 ${open}개${anniv.length ? `, ${anniv.map((a) => a.label).join(", ")}` : ""}`}
                   aria-pressed={isSel}
-                  className="flex min-h-[46px] flex-col items-center gap-[3px] rounded-[12px] pt-0.5 transition hover:bg-surface-2 active:scale-95"
+                  className="flex min-h-[70px] min-w-0 flex-col items-stretch gap-[2px] rounded-[10px] px-[1px] pt-0.5 pb-1 transition hover:bg-surface-2 active:scale-95"
                 >
                   <span
-                    className={`relative grid size-[30px] place-items-center rounded-full font-hand text-[19px] leading-none tabular-nums ${
+                    className={`relative mx-auto grid size-[28px] place-items-center rounded-full font-hand text-[18px] leading-none tabular-nums ${
                       isToday ? "bg-accent font-bold text-accent-ink" : isSel ? "ring-2 ring-accent" : d.getDay() === 0 ? "text-late" : ""
                     }`}
                   >
                     {d.getDate()}
                     {anniv.length > 0 && <span className="absolute -top-1.5 -right-1.5 font-sans text-[11px]">{anniv[0].emoji}</span>}
                   </span>
-                  <span className="flex h-1.5 items-center gap-[3px]" aria-hidden>
-                    {dots.slice(0, 3).map((m) => (
-                      <span key={m.id} className="size-[5px] rounded-full" style={{ background: m.color }} />
+                  <span className="flex min-w-0 flex-col gap-[2px]" aria-hidden>
+                    {items.slice(0, 2).map((m) => (
+                      <span
+                        key={m.id}
+                        // 일정 = 색 채움, 할 일 = 파란 테두리 (말줄임표 없이 잘라서 한 글자라도 더)
+                        className="block overflow-hidden rounded-[4px] px-[2px] text-left text-[10px] leading-[14px] font-semibold tracking-[-0.06em] whitespace-nowrap sm:text-[11px] sm:leading-[16px]"
+                        style={
+                          m.task
+                            ? { boxShadow: `inset 0 0 0 1px ${m.color}`, color: m.color }
+                            : { background: `color-mix(in srgb, ${m.color} 16%, transparent)`, color: `color-mix(in srgb, ${m.color} 70%, var(--ink))` }
+                        }
+                        title={m.title}
+                      >
+                        {m.title}
+                      </span>
                     ))}
-                    {open > 0 && <span className="size-[5px] rounded-[1.5px] bg-accent" />}
+                    {items.length > 2 && <span className="text-center text-[10px] leading-[12px] font-semibold text-ink-3">+{items.length - 2}</span>}
                   </span>
                 </button>
               );
