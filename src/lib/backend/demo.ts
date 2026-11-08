@@ -107,6 +107,7 @@ export class DemoBackend implements Backend {
   }
 
   async signIn() {}
+  async verifyCode() {}
   async signOut() {}
 
   async updateProfile(patch: Partial<Pick<Profile, "name" | "color">>) {

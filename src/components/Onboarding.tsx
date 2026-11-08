@@ -23,7 +23,20 @@ export function SignIn() {
   const { backend, showToast } = usePlanner();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const verify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await backend.verifyCode(email.trim(), code);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "로그인하지 못했어요");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,15 +54,29 @@ export function SignIn() {
   return (
     <Shell>
       {sent ? (
-        <div className="rounded-3xl bg-surface p-6 text-center ring-1 ring-line">
+        <form onSubmit={verify} className="space-y-3 rounded-3xl bg-surface p-6 text-center ring-1 ring-line">
           <p className="font-bold">메일함을 확인해 주세요</p>
-          <p className="mt-2 text-sm text-ink-2">
-            <b>{email}</b> 로 로그인 링크를 보냈어요. 링크를 누르면 바로 들어와요.
+          <p className="text-sm text-ink-2">
+            <b>{email}</b> 로 보낸 메일의 <b>숫자 코드</b>를 입력하세요. (홈 화면 앱에서는 링크 대신 코드를 쓰는 게 확실해요)
           </p>
-          <button onClick={() => setSent(false)} className="mt-4 text-sm font-semibold text-accent">
+          <input
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            aria-label="로그인 코드"
+            className={`${inputCls} text-center font-mono text-2xl tracking-[0.3em]`}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            maxLength={8}
+            minLength={6}
+            required
+          />
+          <button disabled={busy} className="min-h-12 w-full rounded-2xl bg-accent font-bold text-accent-ink disabled:opacity-50">
+            {busy ? "확인 중…" : "로그인"}
+          </button>
+          <button type="button" onClick={() => setSent(false)} className="text-sm font-semibold text-accent">
             다른 메일로 받기
           </button>
-        </div>
+        </form>
       ) : (
         <form onSubmit={submit} className="space-y-3">
           <Field label="이메일">
@@ -58,7 +85,7 @@ export function SignIn() {
           <button disabled={busy} className="min-h-12 w-full rounded-2xl bg-accent font-bold text-accent-ink disabled:opacity-50">
             {busy ? "보내는 중…" : "로그인 링크 받기"}
           </button>
-          <p className="text-center text-xs text-ink-3">비밀번호 없이 메일 링크로 로그인해요.</p>
+          <p className="text-center text-xs text-ink-3">비밀번호 없이 메일로 받은 코드로 로그인해요.</p>
         </form>
       )}
     </Shell>

@@ -61,6 +61,8 @@ export interface Backend {
   subscribe(listener: () => void): () => void;
   load(): Promise<Snapshot>;
   signIn(email: string): Promise<void>;
+  /** 메일로 받은 숫자 코드로 로그인 (홈 화면 앱에서 필요) */
+  verifyCode(email: string, code: string): Promise<void>;
   signOut(): Promise<void>;
   updateProfile(patch: Partial<Pick<Profile, "name" | "color">>): Promise<void>;
   createCouple(): Promise<string>;

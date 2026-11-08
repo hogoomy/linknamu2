@@ -8,7 +8,8 @@ let instance: Backend | null = null;
 export function getBackend(): Backend {
   if (instance) return instance;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Vercel의 Supabase 연동이 넣어 주는 이름도 지원 (NEXT_PUBLIC_ 값은 빌드 때 그대로 치환되므로 하나씩 적어야 함)
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   instance = url && key ? new SupabaseBackend(url, key) : new DemoBackend();
   return instance;
 }

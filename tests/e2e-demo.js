@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+// 실행: BASE_URL=http://localhost:3000 node tests/e2e-demo.js <스크린샷 폴더>
 const { chromium, devices } = require('playwright');
 const out = process.argv[2];
 const base = process.env.BASE_URL || 'http://localhost:3000';

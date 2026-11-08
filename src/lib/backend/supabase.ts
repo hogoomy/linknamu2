@@ -98,6 +98,11 @@ export class SupabaseBackend implements Backend {
     if (error) throw error;
   }
 
+  async verifyCode(email: string, code: string) {
+    const { error } = await this.sb.auth.verifyOtp({ email, token: code.trim(), type: "email" });
+    if (error) throw new Error("코드가 맞지 않거나 만료됐어요. 새 코드를 받아 주세요");
+  }
+
   async signOut() {
     await this.sb.auth.signOut();
   }
