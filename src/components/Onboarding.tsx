@@ -115,7 +115,7 @@ export function CoupleSetup() {
     <Shell>
       <div className="space-y-4 rounded-3xl bg-surface p-5 ring-1 ring-line">
         <Field label="내 이름 (상대에게 보여요)">
-          <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="예) 남편, 호겸" maxLength={20} />
+          <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="예) 호구미" maxLength={20} />
         </Field>
         <Segmented
           value={mode}

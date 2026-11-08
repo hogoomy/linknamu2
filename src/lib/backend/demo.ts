@@ -25,8 +25,8 @@ function seed(): DemoDB {
   const W = "demo-wife";
   return {
     profiles: [
-      { id: H, name: "남편", color: "#34508f", couple_id: COUPLE_ID },
-      { id: W, name: "아내", color: "#b5653a", couple_id: COUPLE_ID },
+      { id: H, name: "호구미", color: "#34508f", couple_id: COUPLE_ID },
+      { id: W, name: "조구미", color: "#b5653a", couple_id: COUPLE_ID },
     ],
     events: [
       { id: uid(), couple_id: COUPLE_ID, title: "장모님 생신 저녁", date: d(3), end_date: null, start_time: "18:30", end_time: "21:00", owner_id: null, memo: "케이크 픽업", created_by: W, created_at: now },
@@ -61,7 +61,11 @@ export class DemoBackend implements Backend {
     const raw = safeGet("localStorage", DB_KEY);
     if (raw) {
       try {
-        return JSON.parse(raw) as DemoDB;
+        const db = JSON.parse(raw) as DemoDB;
+        // 예전 체험판의 기본 이름(남편/아내)을 새 이름으로 (데이터는 그대로)
+        const renamed: Record<string, string> = { 남편: "호구미", 아내: "조구미" };
+        db.profiles = db.profiles.map((p) => (renamed[p.name] ? { ...p, name: renamed[p.name] } : p));
+        return db;
       } catch {
         /* fallthrough → reseed */
       }

@@ -29,6 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* App Router 루트 레이아웃이라 모든 페이지에 적용됨 (pages 라우터용 경고) */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" />
       </head>
       <body className="min-h-full">{children}</body>

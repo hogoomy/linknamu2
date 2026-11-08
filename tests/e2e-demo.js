@@ -23,7 +23,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   wife.on('pageerror', e => errors.push(e.message));
   await wife.goto(base);
   await wife.getByRole('button', { name: '설정', exact: true }).click();
-  await wife.getByRole('button', { name: '아내(으)로 보기' }).click();
+  await wife.getByRole('button', { name: '조구미(으)로 보기' }).click();
   await wife.getByText('님과 연결되어 있어요').waitFor();
   assert(true, 'wife tab switched user');
   await wife.getByRole('button', { name: '할 일', exact: true }).click();
@@ -36,11 +36,11 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.getByRole('button', { name: '+ 할 일 · 부탁' }).click();
   await husband.getByPlaceholder('예) 퇴근길에 우유 사 오기').fill('택배 반품 맡기기');
   const both = await husband.getByRole('radio', { name: '함께' }).evaluate(e => getComputedStyle(e).borderColor);
-  const wife1 = await husband.getByRole('radio', { name: '아내' }).getAttribute('aria-checked');
+  const wife1 = await husband.getByRole('radio', { name: '조구미' }).getAttribute('aria-checked');
   assert(both === 'rgba(0, 0, 0, 0)' && wife1 === 'true', 'only selected person highlighted');
   await husband.screenshot({ path: `${out}/2-editor.png` });
   await husband.getByRole('button', { name: '부탁하기' }).click();
-  await husband.getByText('아내에게 부탁했어요').waitFor();
+  await husband.getByText('조구미에게 부탁했어요').waitFor();
   assert(await husband.getByRole('dialog').count() === 1, 'editor closes back to the day popup');
   await husband.keyboard.press('Escape');
   assert(true, 'husband sent request');
