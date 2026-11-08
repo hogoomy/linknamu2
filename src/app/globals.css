@@ -1,35 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #faf6f0;
+  /* 토스풍: 회색 바탕 + 흰 카드 + 파란 포인트, 사진에서 따온 두 사람 색 */
+  --bg: #f2f4f6;
   --surface: #ffffff;
-  --surface-2: #f3ede4;
-  --line: #e7dfd3;
-  --ink: #2a2420;
-  --ink-2: #6f655c;
-  --ink-3: #a1968b;
-  --accent: #e8603c;
+  --surface-2: #f2f4f6;
+  --line: #e5e8eb;
+  --ink: #191f28;
+  --ink-2: #4e5968;
+  --ink-3: #8b95a1;
+  --accent: #3182f6;
   --accent-ink: #ffffff;
-  --accent-soft: #fde6dc;
-  --late: #dc2626;
-  --ok: #15803d;
+  --accent-soft: #e8f3ff;
+  --late: #f04452;
+  --ok: #3182f6;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171412;
-    --surface: #221e1b;
-    --surface-2: #2c2723;
-    --line: #3a332e;
-    --ink: #f3ece4;
-    --ink-2: #bdb2a6;
-    --ink-3: #85796e;
-    --accent: #f27a56;
-    --accent-ink: #1b1411;
-    --accent-soft: #43271d;
-    --late: #f87171;
-    --ok: #4ade80;
+  :root:not([data-theme="light"]) {
+    --bg: #17171c;
+    --surface: #202027;
+    --surface-2: #2c2c35;
+    --line: #34343e;
+    --ink: #f9fafb;
+    --ink-2: #b0b8c1;
+    --ink-3: #6b7684;
+    --accent: #4593fc;
+    --accent-ink: #ffffff;
+    --accent-soft: #1d2a41;
+    --late: #f66570;
+    --ok: #4593fc;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #17171c;
+  --surface: #202027;
+  --surface-2: #2c2c35;
+  --line: #34343e;
+  --ink: #f9fafb;
+  --ink-2: #b0b8c1;
+  --ink-3: #6b7684;
+  --accent: #4593fc;
+  --accent-ink: #ffffff;
+  --accent-soft: #1d2a41;
+  --late: #f66570;
+  --ok: #4593fc;
+  color-scheme: dark;
 }
 
 @theme inline {

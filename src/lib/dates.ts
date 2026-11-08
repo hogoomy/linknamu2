@@ -11,7 +11,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import { ko } from "date-fns/locale";
-import type { PlannerEvent, Task } from "./types";
+import type { Task } from "./types";
 
 export const toKey = (d: Date) => format(d, "yyyy-MM-dd");
 export const todayKey = () => toKey(new Date());
@@ -30,12 +30,14 @@ export function weekGrid(day: Date): Date[] {
 }
 
 /** 여러 날 일정도 포함해서 해당 날짜에 걸치는지 */
-export function eventOnDay(e: PlannerEvent, key: string) {
+type Dated = { date: string; end_date: string | null; start_time: string | null; end_time: string | null };
+
+export function eventOnDay(e: Dated, key: string) {
   const end = e.end_date ?? e.date;
   return e.date <= key && key <= end;
 }
 
-export function eventsOn(events: PlannerEvent[], key: string) {
+export function eventsOn<T extends Dated>(events: T[], key: string): T[] {
   return events
     .filter((e) => eventOnDay(e, key))
     .sort((a, b) => (a.start_time ?? "").localeCompare(b.start_time ?? ""));
@@ -60,7 +62,7 @@ export function relativeDue(key: string | null): { label: string; tone: "late" |
   return { label: format(d, "EEEE", { locale: ko }), tone: "soon" };
 }
 
-export function timeRange(e: PlannerEvent) {
+export function timeRange(e: Dated) {
   if (!e.start_time) return e.end_date && e.end_date !== e.date ? `~${prettyDate(e.end_date, false)}` : "종일";
   return e.end_time ? `${e.start_time}–${e.end_time}` : e.start_time;
 }

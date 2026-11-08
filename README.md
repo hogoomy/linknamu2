@@ -10,7 +10,9 @@ PC 브라우저에서도 쓰고, 휴대폰에서는 홈 화면에 추가하면 �
 - 할 일 탭: 내 할 일 / 부탁한 일 / 함께
 - 실시간 동기화: 상대가 추가하거나 체크하면 새로고침 없이 바로 보임
 - 푸시 알림: 새 부탁 받음, 내 부탁 완료됨, 마감 당일 오전 8시
-- 초대 코드로 배우자 연결, 다크 모드
+- 구글 캘린더: 내 구글 일정을 달력에 회색으로 함께 표시(읽기 전용), 앱 일정은 '구글 캘린더에도 추가'
+- 커버 사진: 두 사람 사진을 홈 맨 위에 (설정에서 올리기)
+- 초대 코드로 배우자 연결, 다크 모드, 토스풍 디자인
 
 ## 바로 써보기 (데모 모드)
 환경 변수 없이 실행하면 데이터가 브라우저에만 저장되는 데모 모드로 열립니다.
@@ -23,12 +25,13 @@ npm run dev
 http://localhost:3000 을 탭 두 개로 열고, 한 탭에서 **설정 → 아내(으)로 보기**를 누르면 두 사람이 쓰는 흐름을 확인할 수 있어요.
 
 ## 실제로 쓰기 (Supabase + Vercel)
-1. **Supabase** 프로젝트 생성 → SQL Editor에 `supabase/migrations/0001_init.sql` 내용을 붙여넣고 실행
+1. **Supabase** 프로젝트 생성 → SQL Editor에 `supabase/migrations/` 의 SQL 파일을 번호 순서대로 붙여넣고 실행
 2. Supabase → Authentication → URL Configuration 의 Site URL / Redirect URL에 배포 주소 추가
 3. 푸시 키 만들기: `npx web-push generate-vapid-keys`
 4. `.env.example`을 `.env.local`로 복사해서 값 채우기 (Vercel에는 Project Settings → Environment Variables에 같은 값)
 5. **Vercel**에 이 저장소를 연결해 배포. `vercel.json`의 Cron이 매일 08:00(KST)에 마감 알림을 보냅니다 (`CRON_SECRET` 필요)
-6. 두 사람 모두 휴대폰에서 접속 → 홈 화면에 추가 → 설정에서 **이 기기에서 알림 받기**
+6. (선택) 구글 캘린더: `docs/PHONE_GUIDE.md` 3-1 단계대로 OAuth 클라이언트 ID 발급 → `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+7. 두 사람 모두 휴대폰에서 접속 → 홈 화면에 추가 → 설정에서 **이 기기에서 알림 받기**
    - 아이폰은 반드시 홈 화면 아이콘으로 열어야 알림을 받을 수 있어요 (iOS 16.4+)
 
 ## 구조

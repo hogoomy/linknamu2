@@ -11,9 +11,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const husband = await ctx.newPage();
   husband.on('pageerror', e => errors.push(e.message));
   await husband.goto(base);
-  await husband.getByText('장모님 생신 저녁').first().waitFor();
+  await husband.getByText('주말 장보기 목록 정하기').first().waitFor();
   await husband.screenshot({ path: `${out}/1-calendar-mobile.png` });
-  assert(await husband.getByText('데모').isVisible(), 'demo badge shown');
+  assert(await husband.getByText('체험판').first().isVisible(), 'demo badge shown');
 
   // second tab = wife
   const wife = await ctx.newPage();
@@ -21,7 +21,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await wife.goto(base);
   await wife.getByRole('button', { name: '설정', exact: true }).click();
   await wife.getByRole('button', { name: '아내(으)로 보기' }).click();
-  await wife.getByText('남편 님과 연결되어 있어요').waitFor();
+  await wife.getByText('님과 연결되어 있어요').waitFor();
   assert(true, 'wife tab switched user');
   await wife.getByRole('button', { name: '할 일', exact: true }).click();
 
@@ -29,8 +29,9 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.getByRole('button', { name: '+ 할 일' }).click();
   await husband.getByRole('tab', { name: '할 일 · 부탁' }).click();
   await husband.getByPlaceholder('예) 퇴근길에 우유 사 오기').fill('택배 반품 맡기기');
-  const both = await husband.getByRole('radio', { name: '함께' }).evaluate(e => getComputedStyle(e).backgroundColor);
-  assert(both === 'rgba(0, 0, 0, 0)', 'only selected person highlighted (함께 bg ' + both + ')');
+  const both = await husband.getByRole('radio', { name: '함께' }).evaluate(e => getComputedStyle(e).borderColor);
+  const wife1 = await husband.getByRole('radio', { name: '아내' }).getAttribute('aria-checked');
+  assert(both === 'rgba(0, 0, 0, 0)' && wife1 === 'true', 'only selected person highlighted');
   await husband.screenshot({ path: `${out}/2-editor.png` });
   await husband.getByRole('button', { name: '부탁하기' }).click();
   await husband.getByText('아내에게 부탁했어요').waitFor();
@@ -45,12 +46,12 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   // husband sees done
   await husband.getByRole('button', { name: '할 일', exact: true }).click();
   await husband.getByRole('tab', { name: /부탁한 일/ }).click();
-  await husband.getByRole('button', { name: /완료 \d+개 보기/ }).click();
+  await husband.getByRole('button', { name: /완료한 일 \d+개/ }).click();
   await husband.getByRole('button', { name: '택배 반품 맡기기 완료 취소' }).waitFor({ timeout: 3000 });
   assert(true, 'husband sees completion');
 
   // schedule an unscheduled task via calendar
-  await husband.getByRole('button', { name: '달력', exact: true }).click();
+  await husband.getByRole('button', { name: '홈', exact: true }).click();
   await husband.getByRole('button', { name: '이 날 하기' }).first().click();
   await husband.getByText('할 일을 고쳤어요').waitFor();
   await husband.getByRole('button', { name: '이 날 하기' }).waitFor({ state: 'detached', timeout: 3000 });
@@ -61,8 +62,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.getByPlaceholder('예) 친구 결혼식').fill('치과 예약');
   await husband.getByRole('radio', { name: '나' }).click();
   await husband.getByRole('button', { name: '추가하기' }).click();
-  await wife.getByRole('button', { name: '달력', exact: true }).click();
-  await wife.getByText('치과 예약').first().waitFor({ timeout: 3000 });
+  await wife.getByRole('button', { name: '홈', exact: true }).click();
+  await wife.locator('li', { hasText: '치과 예약' }).waitFor({ timeout: 3000 });
   assert(true, 'event synced to wife');
   await wife.screenshot({ path: `${out}/4-wife-calendar.png`, fullPage: true });
 
@@ -71,10 +72,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const d = await dctx.newPage();
   d.on('pageerror', e => errors.push(e.message));
   await d.goto(base);
-  await d.getByText('장모님 생신 저녁').first().waitFor();
+  await d.getByText('주말 장보기 목록 정하기').first().waitFor();
   await d.screenshot({ path: `${out}/5-desktop.png` });
   const dark = await b.newContext({ ...devices['iPhone 13'], colorScheme: 'dark' });
-  const dp = await dark.newPage(); await dp.goto(base); await dp.getByText('장모님 생신 저녁').first().waitFor();
+  const dp = await dark.newPage(); await dp.goto(base); await dp.getByText('주말 장보기 목록 정하기').first().waitFor();
   await dp.getByRole('button', { name: '할 일', exact: true }).click();
   await dp.screenshot({ path: `${out}/6-dark-tasks.png` });
   assert(errors.length === 0, 'no page errors ' + errors.join('|'));

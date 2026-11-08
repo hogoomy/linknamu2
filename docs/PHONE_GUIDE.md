@@ -25,6 +25,7 @@
 1. GitHub 앱/웹에서 저장소의 `supabase/migrations/0001_init.sql` 열기 → **Raw** → 전체 선택·복사
 2. Vercel Storage 탭의 Supabase → **Open in Supabase** → 왼쪽 메뉴 **SQL Editor** → 붙여넣기 → **Run**
    - "Success. No rows returned" 가 나오면 성공
+   - 같은 방법으로 `0002_cover_photo.sql` 도 실행 (커버 사진)
 3. Supabase → **Authentication → URL Configuration**
    - Site URL: `https://<내 vercel 주소>`
    - Redirect URLs: `https://<내 vercel 주소>/**` 추가
@@ -34,6 +35,14 @@
    <p>로그인 코드: <b>{{ .Token }}</b></p>
    ```
    (홈 화면 앱 안에서 이 코드를 입력해 로그인해요)
+
+## 3-1. 구글 캘린더 연결 (선택, 5분)
+1. console.cloud.google.com → 새 프로젝트 → **API 및 서비스 → 라이브러리** → `Google Calendar API` 사용 설정
+2. **OAuth 동의 화면**: 외부 → 앱 이름 `우리집 플래너` → 테스트 사용자에 두 사람 구글 메일 추가
+3. **사용자 인증 정보 → OAuth 클라이언트 ID** → 웹 애플리케이션
+   → 승인된 JavaScript 원본: `https://<내 vercel 주소>`
+4. 만들어진 클라이언트 ID를 Vercel 환경 변수 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` 로 추가
+5. 앱 설정 → **구글 캘린더 연결하기** (각자 자기 기기에서 한 번)
 
 ## 4. 다시 배포 (1분)
 Vercel → Deployments → 맨 위 ⋯ → **Redeploy** (환경 변수를 넣은 뒤엔 꼭 한 번)

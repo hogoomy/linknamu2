@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Task } from "@/lib/types";
 import { usePlanner } from "./PlannerProvider";
 import { TaskRow } from "./TaskRow";
-import { Segmented } from "./ui";
+import { Card, Segmented } from "./ui";
 
 type Tab = "received" | "sent" | "together";
 
@@ -41,7 +41,7 @@ export function TasksView({ onOpenTask }: { onOpenTask: (t: Task) => void }) {
   };
 
   return (
-    <section aria-label="할 일" className="space-y-4">
+    <section aria-label="할 일" className="space-y-3">
       <Segmented
         value={tab}
         onChange={setTab}
@@ -52,40 +52,46 @@ export function TasksView({ onOpenTask }: { onOpenTask: (t: Task) => void }) {
         ]}
       />
 
-      {open.length === 0 && <p className="rounded-2xl border border-dashed border-line px-4 py-6 text-center text-sm text-ink-3">{empty[tab]}</p>}
+      {open.length === 0 && (
+        <Card>
+          <p className="py-6 text-center text-[15px] text-ink-3">{empty[tab]}</p>
+        </Card>
+      )}
 
       {scheduled.length > 0 && (
-        <ul className="space-y-2">
-          {scheduled.map((t) => (
-            <TaskRow key={t.id} task={t} onOpen={onOpenTask} />
-          ))}
-        </ul>
+        <Card title="마감 순">
+          <ul>
+            {scheduled.map((t) => (
+              <TaskRow key={t.id} task={t} onOpen={onOpenTask} />
+            ))}
+          </ul>
+        </Card>
       )}
 
       {unscheduled.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-sm font-bold text-ink-2">언제 할까? · 날짜 미정</h3>
-          <ul className="space-y-2">
+        <Card title="언제 할까?">
+          <ul>
             {unscheduled.map((t) => (
               <TaskRow key={t.id} task={t} onOpen={onOpenTask} />
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
       {done.length > 0 && (
-        <div>
-          <button onClick={() => setShowDone((v) => !v)} className="mb-2 text-sm font-bold text-ink-3" aria-expanded={showDone}>
-            완료 {done.length}개 {showDone ? "접기" : "보기"}
+        <Card>
+          <button onClick={() => setShowDone((v) => !v)} className="flex w-full items-center justify-between text-[15px] font-semibold text-ink-3" aria-expanded={showDone}>
+            완료한 일 {done.length}개
+            <span className="text-[14px]">{showDone ? "접기" : "펼치기"}</span>
           </button>
           {showDone && (
-            <ul className="space-y-2">
+            <ul className="mt-1">
               {done.map((t) => (
                 <TaskRow key={t.id} task={t} onOpen={onOpenTask} />
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       )}
     </section>
   );

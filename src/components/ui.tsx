@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-type IconName = "calendar" | "check" | "settings" | "plus" | "left" | "right" | "close" | "trash" | "clock" | "inbox" | "send" | "heart";
+type IconName = "chevron" | "camera" | "google" | "calendar" | "check" | "settings" | "plus" | "left" | "right" | "close" | "trash" | "clock" | "inbox" | "send" | "heart";
 
 const paths: Record<IconName, React.ReactNode> = {
   calendar: (
@@ -19,6 +19,19 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  chevron: <path d="M9 6l6 6-6 6" />,
+  camera: (
+    <>
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
+  google: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="16" rx="3" />
+      <path d="M3.5 9.5h17M8 2.5v4M16 2.5v4M10 15.5h4" />
+    </>
+  ),
   left: <path d="M15 18l-6-6 6-6" />,
   right: <path d="M9 18l6-6-6-6" />,
   close: <path d="M6 6l12 12M18 6L6 18" />,
@@ -54,15 +67,16 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal aria-label={title}>
-      <button aria-label="닫기" className="absolute inset-0 bg-black/35" onClick={onClose} />
-      <div className="animate-sheet relative max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-surface pb-safe shadow-2xl sm:max-w-md sm:rounded-3xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-5 pt-4 pb-2">
-          <h2 className="text-lg font-bold">{title}</h2>
+      <button aria-label="닫기" className="absolute inset-0 bg-black/45" onClick={onClose} />
+      <div className="animate-sheet relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-surface pb-safe sm:max-w-md sm:rounded-[28px]">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" aria-hidden />
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-6 pt-4 pb-3">
+          <h2 className="text-[22px] font-bold tracking-tight">{title}</h2>
           <button onClick={onClose} className="-mr-2 grid size-10 place-items-center rounded-full text-ink-2 hover:bg-surface-2" aria-label="닫기">
             <Icon name="close" />
           </button>
         </div>
-        <div className="px-5 pb-6">{children}</div>
+        <div className="px-6 pb-6">{children}</div>
       </div>
     </div>
   );
@@ -80,15 +94,15 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={`flex rounded-2xl bg-surface-2 p-1 ${className}`} role="tablist">
+    <div className={`flex rounded-[14px] bg-surface-2 p-1 ${className}`} role="tablist">
       {options.map((o) => (
         <button
           key={o.value}
           role="tab"
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`min-h-10 flex-1 rounded-xl px-3 text-sm font-semibold transition ${
-            value === o.value ? "bg-surface text-ink shadow-sm" : "text-ink-2"
+          className={`min-h-9 flex-1 rounded-[10px] px-3 text-[15px] font-semibold transition ${
+            value === o.value ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.08)]" : "text-ink-3"
           }`}
         >
           {o.label}
@@ -101,18 +115,37 @@ export function Segmented<T extends string>({
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-ink-2">{label}</span>
+      <span className="mb-2 block text-[13px] font-medium text-ink-3">{label}</span>
       {children}
     </label>
   );
 }
 
 export const inputCls =
-  "w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base text-ink outline-none placeholder:text-ink-3 focus:border-accent";
+  "w-full rounded-[14px] border-2 border-transparent bg-surface-2 px-4 py-3.5 text-[17px] text-ink outline-none placeholder:text-ink-3 focus:border-accent";
+
+/** 토스풍 흰 카드 */
+export function Card({ children, className = "", title, action }: { children: React.ReactNode; className?: string; title?: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <section className={`rounded-[24px] bg-surface px-5 py-5 ${className}`}>
+      {(title || action) && (
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {title && <h2 className="text-[19px] font-bold tracking-tight">{title}</h2>}
+          {action}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+export const primaryBtn = "min-h-14 w-full rounded-[16px] bg-accent text-[17px] font-semibold text-accent-ink transition active:scale-[0.98] disabled:opacity-40";
+export const secondaryBtn = "rounded-[12px] bg-surface-2 px-3.5 py-2 text-[15px] font-semibold text-ink-2 transition active:scale-[0.97]";
+export const softBtn = "rounded-[12px] bg-accent-soft px-3.5 py-2 text-[15px] font-semibold text-accent transition active:scale-[0.97]";
 
 export function PersonChip({ name, color }: { name: string; color: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: `${color}22`, color }}>
+    <span className="inline-flex items-center gap-1 rounded-[6px] px-1.5 py-0.5 text-[12px] font-semibold" style={{ background: `${color}1f`, color }}>
       <span className="size-1.5 rounded-full" style={{ background: color }} />
       {name}
     </span>

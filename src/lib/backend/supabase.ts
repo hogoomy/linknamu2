@@ -41,6 +41,7 @@ export class SupabaseBackend implements Backend {
       .on("postgres_changes", { event: "*", schema: "public", table: "events", filter }, () => this.emit())
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter }, () => this.emit())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter }, () => this.emit())
+      .on("postgres_changes", { event: "*", schema: "public", table: "couples", filter: `id=eq.${coupleId}` }, () => this.emit())
       .subscribe();
   }
 
@@ -56,7 +57,7 @@ export class SupabaseBackend implements Backend {
     const user = sess.session?.user;
     if (!user) {
       this.watch(null);
-      return { me: null, partner: null, inviteCode: null, events: [], tasks: [] };
+      return { me: null, partner: null, inviteCode: null, cover: null, events: [], tasks: [] };
     }
     const { data: profiles, error } = await this.sb.from("profiles").select("id,name,color,couple_id");
     if (error) throw error;
@@ -68,10 +69,10 @@ export class SupabaseBackend implements Backend {
     };
     const partner = (profiles as Profile[]).find((p) => p.id !== user.id) ?? null;
     this.watch(me.couple_id);
-    if (!me.couple_id) return { me, partner: null, inviteCode: null, events: [], tasks: [] };
+    if (!me.couple_id) return { me, partner: null, inviteCode: null, cover: null, events: [], tasks: [] };
 
     const [couple, events, tasks] = await Promise.all([
-      this.sb.from("couples").select("invite_code").eq("id", me.couple_id).maybeSingle(),
+      this.sb.from("couples").select("invite_code,cover_photo").eq("id", me.couple_id).maybeSingle(),
       this.sb.from("events").select("*").order("date"),
       this.sb.from("tasks").select("*").order("created_at"),
     ]);
@@ -81,6 +82,7 @@ export class SupabaseBackend implements Backend {
       me,
       partner,
       inviteCode: couple.data?.invite_code ?? null,
+      cover: couple.data?.cover_photo ?? null,
       events: (events.data as PlannerEvent[]).map((e) => ({
         ...e,
         start_time: trimTime(e.start_time),
@@ -119,6 +121,12 @@ export class SupabaseBackend implements Backend {
     if (error) throw error;
     this.emit();
     return data as string;
+  }
+
+  async setCover(dataUrl: string | null) {
+    const { error } = await this.sb.from("couples").update({ cover_photo: dataUrl }).eq("id", await this.coupleId());
+    if (error) throw error;
+    this.emit();
   }
 
   async joinCouple(code: string) {

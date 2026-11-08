@@ -25,8 +25,8 @@ type Ctx = Snapshot & {
 
 const PlannerContext = createContext<Ctx | null>(null);
 
-const EMPTY: Snapshot = { me: null, partner: null, inviteCode: null, events: [], tasks: [] };
-export const TOGETHER_COLOR = "#a16207";
+const EMPTY: Snapshot = { me: null, partner: null, inviteCode: null, cover: null, events: [], tasks: [] };
+export const TOGETHER_COLOR = "#12a37a";
 
 export function PlannerProvider({ children }: { children: React.ReactNode }) {
   const backend = useMemo(() => getBackend(), []);

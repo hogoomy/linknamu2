@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { PlannerEvent, Task, TaskStatus } from "@/lib/types";
 import { usePlanner } from "./PlannerProvider";
-import { Field, Icon, inputCls, Segmented, Sheet } from "./ui";
+import { googleAddLink } from "@/lib/google";
+import { Field, Icon, inputCls, primaryBtn, Segmented, Sheet } from "./ui";
 
 export type EditorTarget =
   | { kind: "event"; date: string; item?: PlannerEvent }
@@ -85,7 +86,7 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
   const statusLabels: Record<TaskStatus, string> = { requested: "부탁함", in_progress: "진행 중", done: "완료" };
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-5">
       {isNew && (
         <Segmented
           value={kind}
@@ -113,7 +114,7 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
       </Field>
 
       <div>
-        <span className="mb-1.5 block text-xs font-semibold text-ink-2">{kind === "event" ? "누구 일정?" : "누가 할까요?"}</span>
+        <span className="mb-2 block text-[13px] font-medium text-ink-3">{kind === "event" ? "누구 일정?" : "누가 할까요?"}</span>
         <div className="flex gap-2" role="radiogroup">
           {people.map((p) => {
             const color = colorOf(p.id === "both" ? null : p.id);
@@ -125,8 +126,8 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
                 aria-checked={on}
                 key={p.id}
                 onClick={() => setWho(p.id)}
-                className="min-h-11 flex-1 rounded-xl border-2 px-2 text-sm font-semibold"
-                style={on ? { borderColor: color, background: `${color}1f`, color } : { borderColor: "var(--line)", background: "transparent", color: "var(--ink-2)" }}
+                className="min-h-12 flex-1 rounded-[14px] border-2 px-2 text-[16px] font-semibold transition"
+                style={on ? { borderColor: color, background: `${color}14`, color } : { borderColor: "transparent", background: "var(--surface-2)", color: "var(--ink-2)" }}
               >
                 {p.label}
               </button>
@@ -134,7 +135,7 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
           })}
         </div>
         {kind === "task" && partner && who === partner.id && (
-          <p className="mt-1.5 text-xs text-ink-3">{partner.name || "상대"}에게 부탁으로 보내고 알림이 가요.</p>
+          <p className="mt-2 text-[13px] text-accent">{partner.name || "상대"}에게 부탁으로 보내고 알림이 가요.</p>
         )}
       </div>
 
@@ -148,9 +149,9 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
               <input type="date" className={inputCls} value={endDate} min={date} onChange={(e) => setEndDate(e.target.value)} />
             </Field>
           </div>
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
+          <label className="flex items-center justify-between rounded-[14px] bg-surface-2 px-4 py-3.5 text-[16px] font-medium">
             종일
+            <input type="checkbox" role="switch" className="size-5 accent-[var(--accent)]" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
           </label>
           {!allDay && (
             <div className="grid grid-cols-2 gap-3">
@@ -165,9 +166,9 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
         </>
       ) : (
         <>
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={noDate} onChange={(e) => setNoDate(e.target.checked)} />
-            날짜는 나중에 정할게요 (언제 할까?)
+          <label className="flex items-center justify-between rounded-[14px] bg-surface-2 px-4 py-3.5 text-[16px] font-medium">
+            날짜는 나중에 정할게요
+            <input type="checkbox" role="switch" className="size-5 accent-[var(--accent)]" checked={noDate} onChange={(e) => setNoDate(e.target.checked)} />
           </label>
           {!noDate && (
             <Field label="언제까지?">
@@ -183,7 +184,7 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
 
       {tk && (
         <div>
-          <span className="mb-1.5 block text-xs font-semibold text-ink-2">진행 상태</span>
+          <span className="mb-2 block text-[13px] font-medium text-ink-3">진행 상태</span>
           <Segmented
             value={tk.status}
             onChange={async (s) => {
@@ -195,20 +196,31 @@ function EditorForm({ target, onClose }: { target: EditorTarget; onClose: () => 
         </div>
       )}
 
-      <div className="flex gap-2 pt-2">
+      {ev && (
+        <a
+          href={googleAddLink(ev)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-1.5 rounded-[14px] bg-surface-2 py-3.5 text-[15px] font-semibold text-ink-2"
+        >
+          <Icon name="google" className="size-4" /> 구글 캘린더에도 추가
+        </a>
+      )}
+
+      <div className="flex gap-2 pt-1">
         {!isNew && (
           <button
             type="button"
             onClick={remove}
             onBlur={() => setConfirmDelete(false)}
-            className={`flex h-12 shrink-0 items-center justify-center gap-1 rounded-2xl border px-3.5 text-sm font-bold ${confirmDelete ? "border-late bg-late text-white" : "border-line text-late"}`}
+            className={`flex h-14 shrink-0 items-center justify-center gap-1 rounded-[16px] px-4 text-[15px] font-semibold ${confirmDelete ? "bg-late text-white" : "bg-surface-2 text-late"}`}
             aria-label={confirmDelete ? "한 번 더 눌러 지우기" : "지우기"}
           >
             <Icon name="trash" />
             {confirmDelete && "지우기"}
           </button>
         )}
-        <button type="submit" disabled={busy} className="min-h-12 flex-1 rounded-2xl bg-accent text-base font-bold text-accent-ink disabled:opacity-50">
+        <button type="submit" disabled={busy} className={`flex-1 ${primaryBtn}`}>
           {busy ? "저장 중…" : isNew ? (kind === "task" && partner && who === partner.id ? "부탁하기" : "추가하기") : "저장"}
         </button>
       </div>

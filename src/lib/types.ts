@@ -49,6 +49,8 @@ export type Snapshot = {
   me: Profile | null;
   partner: Profile | null;
   inviteCode: string | null;
+  /** 커플 커버 사진 (data URL) */
+  cover: string | null;
   events: PlannerEvent[];
   tasks: Task[];
 };
@@ -66,6 +68,7 @@ export interface Backend {
   signOut(): Promise<void>;
   updateProfile(patch: Partial<Pick<Profile, "name" | "color">>): Promise<void>;
   createCouple(): Promise<string>;
+  setCover(dataUrl: string | null): Promise<void>;
   joinCouple(code: string): Promise<void>;
   saveEvent(input: EventInput, id?: string): Promise<void>;
   deleteEvent(id: string): Promise<void>;
