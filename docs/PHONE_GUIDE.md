@@ -13,6 +13,10 @@
 3. Create repository → Claude 앱에 "저장소 만들었어" 라고 말하기 → Claude가 코드를 올림
 
 ## 2. Vercel에 배포 + Supabase 자동 연결 (5분)
+
+> 이 프로젝트는 `linknamu2` 저장소의 `claude/couple-task-schedule-app-mnhvq4` 브랜치에 있어요.
+> Vercel → Settings → Environments → Production → **Branch Tracking** 을 이 브랜치로 바꿔야 해요.
+> "No deployments found" 가 뜨면 이 브랜치에 커밋이 한 번 올라온 뒤(미리보기 배포가 생긴 뒤) **Retry** 를 누르세요.
 1. vercel.com/new → `couple-planner` 저장소 **Import** → Deploy
    (환경 변수 없이도 데모 모드로 바로 열려요. 주소 예: `couple-planner-xxx.vercel.app`)
 2. 프로젝트 → **Storage** 탭 → Create Database → **Supabase** 선택 → 지역 `Seoul (ap-northeast-2)` → 생성
