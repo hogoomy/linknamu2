@@ -11,7 +11,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const husband = await ctx.newPage();
   husband.on('pageerror', e => errors.push(e.message));
   await husband.goto(base);
-  await husband.getByText('주말 장보기 목록 정하기').first().waitFor();
+  // 오늘 날짜 버튼 (팝업 열기용)
+  const todayBtn = (p) => p.getByRole('button', { pressed: true }).first();
+  await todayBtn(husband).waitFor();
+  assert(await husband.getByText('주말 장보기 목록 정하기').count() === 0, 'day details hidden until a date is tapped');
   await husband.screenshot({ path: `${out}/1-calendar-mobile.png` });
   assert(await husband.getByText('체험판').first().isVisible(), 'demo badge shown');
 
@@ -26,8 +29,11 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await wife.getByRole('button', { name: '할 일', exact: true }).click();
 
   // husband requests a task to wife
-  await husband.getByRole('button', { name: '+ 할 일' }).click();
-  await husband.getByRole('tab', { name: '할 일 · 부탁' }).click();
+  await todayBtn(husband).click();
+  await husband.getByRole('dialog').getByText('주말 장보기 목록 정하기').waitFor();
+  assert(true, 'tapping a date opens the day popup');
+  await husband.screenshot({ path: `${out}/1b-day-popup.png` });
+  await husband.getByRole('button', { name: '+ 할 일 · 부탁' }).click();
   await husband.getByPlaceholder('예) 퇴근길에 우유 사 오기').fill('택배 반품 맡기기');
   const both = await husband.getByRole('radio', { name: '함께' }).evaluate(e => getComputedStyle(e).borderColor);
   const wife1 = await husband.getByRole('radio', { name: '아내' }).getAttribute('aria-checked');
@@ -35,6 +41,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.screenshot({ path: `${out}/2-editor.png` });
   await husband.getByRole('button', { name: '부탁하기' }).click();
   await husband.getByText('아내에게 부탁했어요').waitFor();
+  assert(await husband.getByRole('dialog').count() === 1, 'editor closes back to the day popup');
+  await husband.keyboard.press('Escape');
   assert(true, 'husband sent request');
 
   // wife sees it in realtime
@@ -52,6 +60,7 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
 
   // schedule an unscheduled task via calendar
   await husband.getByRole('button', { name: '홈', exact: true }).click();
+  await todayBtn(husband).click();
   await husband.getByRole('button', { name: '이 날 하기' }).first().click();
   await husband.getByText('할 일을 고쳤어요').waitFor();
   await husband.getByRole('button', { name: '이 날 하기' }).waitFor({ state: 'detached', timeout: 3000 });
@@ -63,7 +72,8 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   await husband.getByRole('radio', { name: '나' }).click();
   await husband.getByRole('button', { name: '추가하기' }).click();
   await wife.getByRole('button', { name: '홈', exact: true }).click();
-  await wife.locator('li', { hasText: '치과 예약' }).waitFor({ timeout: 3000 });
+  await todayBtn(wife).click();
+  await wife.getByRole('dialog').locator('li', { hasText: '치과 예약' }).waitFor({ timeout: 3000 });
   assert(true, 'event synced to wife');
   await wife.screenshot({ path: `${out}/4-wife-calendar.png`, fullPage: true });
 
@@ -72,10 +82,10 @@ const assert = (c, m) => { if (!c) throw new Error('FAIL: ' + m); console.log('o
   const d = await dctx.newPage();
   d.on('pageerror', e => errors.push(e.message));
   await d.goto(base);
-  await d.getByText('주말 장보기 목록 정하기').first().waitFor();
+  await todayBtn(d).waitFor();
   await d.screenshot({ path: `${out}/5-desktop.png` });
   const dark = await b.newContext({ ...devices['iPhone 13'], colorScheme: 'dark' });
-  const dp = await dark.newPage(); await dp.goto(base); await dp.getByText('주말 장보기 목록 정하기').first().waitFor();
+  const dp = await dark.newPage(); await dp.goto(base); await todayBtn(dp).waitFor();
   await dp.getByRole('button', { name: '할 일', exact: true }).click();
   await dp.screenshot({ path: `${out}/6-dark-tasks.png` });
   assert(errors.length === 0, 'no page errors ' + errors.join('|'));

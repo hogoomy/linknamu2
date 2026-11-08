@@ -14,11 +14,15 @@ type Mark = { id: string; title: string; color: string };
 export function Calendar({
   selected,
   onSelect,
+  onPick,
   view,
   onViewChange,
 }: {
   selected: string;
+  /** 달/주 이동 (팝업 없이 선택만 바꿈) */
   onSelect: (key: string) => void;
+  /** 날짜를 눌렀을 때 (그 날 팝업 열기) */
+  onPick: (key: string) => void;
   view: CalView;
   onViewChange: (v: CalView) => void;
 }) {
@@ -80,7 +84,7 @@ export function Calendar({
           return (
             <button
               key={key}
-              onClick={() => onSelect(key)}
+              onClick={() => onPick(key)}
               aria-label={`${format(d, "M월 d일")} 일정 ${marks.length}개, 할 일 ${open}개`}
               aria-pressed={isSel}
               className={`flex flex-col items-center gap-1 rounded-[14px] px-0.5 pt-1 pb-1.5 transition hover:bg-surface-2 ${

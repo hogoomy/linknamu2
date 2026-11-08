@@ -6,7 +6,7 @@ import { dayCount, MET_EMOJI, nextAnniv, WED_EMOJI } from "@/lib/anniv";
 import { eventsOn, todayKey, toKey } from "@/lib/dates";
 import type { PlannerEvent, Task } from "@/lib/types";
 import { Calendar, type CalView } from "./Calendar";
-import { DayPanel } from "./DayPanel";
+import { DaySheet } from "./DayPanel";
 import { Editor, type EditorTarget } from "./Editor";
 import { GoogleProvider, useGoogle } from "./GoogleProvider";
 import { CoupleSetup, SignIn } from "./Onboarding";
@@ -174,6 +174,7 @@ function Main() {
   const [day, setDay] = useState(todayKey());
   const [view, setView] = useState<CalView>("month");
   const [editor, setEditor] = useState<EditorTarget | null>(null);
+  const [dayOpen, setDayOpen] = useState(false);
 
   const openEvent = (item: PlannerEvent) => setEditor({ kind: "event", date: item.date, item });
   const openTask = (item: Task) => setEditor({ kind: "task", date: item.due_date, item });
@@ -210,14 +211,18 @@ function Main() {
 
       <main className="px-4 pb-32 lg:px-0 lg:pb-12">
         {tab === "calendar" && (
-          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-4">
-            <div className="space-y-3">
-              <CoverHero onAddPhoto={() => setTab("settings")} />
-              <Calendar selected={day} onSelect={setDay} view={view} onViewChange={setView} />
-            </div>
-            <div className="mt-3 lg:mt-0">
-              <DayPanel day={day} onAdd={(k) => add(k)} onOpenEvent={openEvent} onOpenTask={openTask} />
-            </div>
+          <div className="space-y-3 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
+            <CoverHero onAddPhoto={() => setTab("settings")} />
+            <Calendar
+              selected={day}
+              onSelect={setDay}
+              onPick={(k) => {
+                setDay(k);
+                setDayOpen(true);
+              }}
+              view={view}
+              onViewChange={setView}
+            />
           </div>
         )}
         {tab === "tasks" && (
@@ -260,6 +265,7 @@ function Main() {
         </div>
       </nav>
 
+      <DaySheet day={day} open={dayOpen && tab === "calendar"} onClose={() => setDayOpen(false)} onAdd={(k) => add(k)} onOpenEvent={openEvent} onOpenTask={openTask} />
       <Editor target={editor} onClose={() => setEditor(null)} />
     </div>
   );

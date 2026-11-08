@@ -6,9 +6,33 @@ import type { PlannerEvent, Task } from "@/lib/types";
 import { GOOGLE_COLOR, useGoogle } from "./GoogleProvider";
 import { usePlanner } from "./PlannerProvider";
 import { TaskRow } from "./TaskRow";
-import { Card, Icon, secondaryBtn, softBtn } from "./ui";
+import { Icon, Sheet, softBtn } from "./ui";
 
-export function DayPanel({
+/** 달력에서 날짜를 누르면 아래에서 올라오는 그 날의 일정·할 일 */
+export function DaySheet({
+  day,
+  open,
+  onClose,
+  onAdd,
+  onOpenEvent,
+  onOpenTask,
+}: {
+  day: string;
+  open: boolean;
+  onClose: () => void;
+  onAdd: (kind: "event" | "task") => void;
+  onOpenEvent: (e: PlannerEvent) => void;
+  onOpenTask: (t: Task) => void;
+}) {
+  const title = `${day === todayKey() ? "오늘 · " : ""}${prettyDate(day)}`;
+  return (
+    <Sheet open={open} onClose={onClose} title={title}>
+      <DayContent day={day} onAdd={onAdd} onOpenEvent={onOpenEvent} onOpenTask={onOpenTask} />
+    </Sheet>
+  );
+}
+
+function DayContent({
   day,
   onAdd,
   onOpenEvent,
@@ -26,34 +50,26 @@ export function DayPanel({
   const dayTasks = tasksOn(tasks, day).sort((a, b) => Number(a.status === "done") - Number(b.status === "done"));
   const unscheduled = tasks.filter((t) => !t.due_date && t.status !== "done");
   const anniv = annivOn(day, { met_on, married_on });
-  const empty = dayEvents.length + gEvents.length + anniv.length === 0;
+  const hasEvents = dayEvents.length + gEvents.length + anniv.length > 0;
 
   const schedule = (t: Task) => saveTask({ title: t.title, assignee_id: t.assignee_id, due_date: day, memo: t.memo }, t.id);
 
   return (
-    <div className="space-y-3" aria-label={`${prettyDate(day)} 상세`}>
-      <Card
-        title={
-          <span className="flex flex-col">
-            <span className="text-[13px] font-medium text-ink-3">{day === todayKey() ? "오늘" : "선택한 날"}</span>
-            {prettyDate(day)}
-          </span>
-        }
-        action={
-          <div className="flex gap-2">
-            <button onClick={() => onAdd("event")} className={secondaryBtn}>
-              + 일정
-            </button>
-            <button onClick={() => onAdd("task")} className={softBtn}>
-              + 할 일
-            </button>
-          </div>
-        }
-      >
-        <h3 className="mt-1 text-[14px] font-semibold text-ink-3">일정</h3>
-        {empty ? (
-          <p className="py-3 text-[15px] text-ink-3">비어 있는 날이에요.</p>
-        ) : (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={() => onAdd("event")} className="min-h-12 rounded-[14px] bg-surface-2 text-[16px] font-semibold text-ink-2 transition active:scale-[0.98]">
+          + 일정
+        </button>
+        <button onClick={() => onAdd("task")} className="min-h-12 rounded-[14px] bg-accent-soft text-[16px] font-semibold text-accent transition active:scale-[0.98]">
+          + 할 일 · 부탁
+        </button>
+      </div>
+
+      {!hasEvents && dayTasks.length === 0 && <p className="py-2 text-center text-[15px] text-ink-3">비어 있는 날이에요. 위 버튼으로 추가해 보세요.</p>}
+
+      {hasEvents && (
+        <section>
+          <h3 className="text-[14px] font-semibold text-ink-3">일정</h3>
           <ul>
             {anniv.map((a) => (
               <li key={a.label} className="flex items-center gap-3.5 py-3">
@@ -104,29 +120,23 @@ export function DayPanel({
               );
             })}
           </ul>
-        )}
+        </section>
+      )}
 
-        <h3 className="mt-3 text-[14px] font-semibold text-ink-3">할 일</h3>
-        {dayTasks.length === 0 ? (
-          <p className="py-3 text-[15px] text-ink-3">이 날 마감인 할 일이 없어요.</p>
-        ) : (
+      {dayTasks.length > 0 && (
+        <section>
+          <h3 className="text-[14px] font-semibold text-ink-3">할 일</h3>
           <ul>
             {dayTasks.map((t) => (
               <TaskRow key={t.id} task={t} onOpen={onOpenTask} />
             ))}
           </ul>
-        )}
-      </Card>
+        </section>
+      )}
 
       {unscheduled.length > 0 && (
-        <Card
-          title={
-            <span className="flex flex-col">
-              <span className="text-[13px] font-medium text-ink-3">날짜가 안 정해진 일</span>
-              언제 할까?
-            </span>
-          }
-        >
+        <section className="border-t border-line pt-4">
+          <h3 className="text-[14px] font-semibold text-ink-3">언제 할까? · 날짜 안 정한 일</h3>
           <ul>
             {unscheduled.map((t) => (
               <TaskRow
@@ -141,7 +151,7 @@ export function DayPanel({
               />
             ))}
           </ul>
-        </Card>
+        </section>
       )}
     </div>
   );
